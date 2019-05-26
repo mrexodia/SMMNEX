@@ -1,0 +1,103 @@
+#include "CommonTypes.bt"
+
+typedef struct {
+    uint8 id : 7;
+    uint8 request : 1;
+    if(request == 0)
+        uint8 result;
+} Protocol <read=read_Protocol>;
+
+typedef struct {
+    uint32 id : 15;
+    uint32 unk : 15;
+} MethodId <read=read_MethodId>;
+
+string read_MethodId(MethodId& m)
+{
+    string result;
+    SPrintf(result, "0x%04X", m.id);
+    return result;
+}
+
+string read_Protocol(Protocol& p)
+{
+    string result;
+    SPrintf(result, "request: %u, id: 0x%02X (%u)", p.request, p.id, p.id);
+    return result;
+}
+
+typedef struct {
+    uint32 payload_size;
+    Protocol protocol;
+    uint32 call_id;
+    MethodId method_id;
+    uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
+} NEXRpc <read=read_NEXRpc>;
+
+string protocolName(uint8 protocol)
+{
+    switch(protocol)
+    {
+    case 0x0A: return "Authentication";
+    case 0x0B: return "Secure Connection";
+    case 0x66: return "Friends Wii U";
+    case 0x73: return "Data Store";
+    }
+    local string result;
+    SPrintf(result, "Unknown_0x%02x", protocol);
+    return result;
+}
+
+string methodName(uint8 protocol, uint32 method)
+{
+    switch(protocol)
+    {
+    case 0x0A:
+        switch(method)
+        {
+        case 1: return "Login";
+        case 2: return "LoginEx";
+        case 3: return "RequestTicket";
+        }
+        break;
+    case 0x0B:
+        switch(method)
+        {
+        case 1: return "Register";
+        case 4: return "RegisterEx";
+        }
+        break;
+    case 0x66:
+        switch(method)
+        {
+        case 1: return "GetAllInformation";
+        }
+        break;
+    case 0x73:
+        switch(method)
+        {
+        case 8: return "GetMeta";
+        case 0x32: return "GetBufferQueues";
+        }
+        break;
+    }
+    local string result;
+    SPrintf(result, "Unknown_0x%04x", method);
+    return result;
+}
+
+string read_NEXRpc(NEXRpc& rpc)
+{
+    local string result;
+    local string type = "Response";
+    if(rpc.protocol.request)
+        type = "Request";
+    SPrintf(result, "NEX %s %s->%s",
+        type,
+        protocolName(rpc.protocol.id),
+        methodName(rpc.protocol.id, rpc.method_id.id)
+    );
+    return result;
+}
+
+NEXRpc x[54] <optimize=false>;
