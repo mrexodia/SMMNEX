@@ -1,0 +1,87 @@
+typedef unsigned char uint8;
+typedef unsigned short uint16;
+typedef unsigned int uint32;
+
+typedef struct {
+    uint16 len;
+    char data[len] <optimize=false>;
+} String <read=read_String>;
+
+string read_String(String& s) {
+    return s.data;
+}
+
+struct qBuffer {
+    uint16 len;
+    unsigned char data[len] <optimize=false>;
+};
+
+struct Buffer {
+    uint32 len;
+    unsigned char data[len] <optimize=false>;
+};
+
+struct qVector_uint32 {
+    uint32 len;
+    uint32 data[len] <optimize=false>;
+};
+
+struct qVector_qBuffer {
+    uint32 len;
+    qBuffer data[len] <optimize=false>;
+};
+
+struct DataStoreKeyValue {
+    String key;
+    String value;
+};
+
+struct DataStoreKeyValueList {
+    uint32 count;
+    DataStoreKeyValue data[count] <optimize=false>;
+};
+
+typedef struct {
+    uint8 version;
+    uint32 size;
+} StructureHeader <read=read_StructureHeader>;
+
+string read_StructureHeader(StructureHeader& s) {
+    string r;
+    SPrintf(r, "version: %d, size: %Xh (%u)", s.version, s.size, s.size);
+    return r;
+}
+
+//#define UnknownStructure uint8 _unk1 <optimize=false>; uint8 _unk2[4 + header.size - startof(_unk1) + sizeof(StructureHeader) - 1] <optimize=false>
+
+typedef struct(StructureHeader& header)
+{
+    uint8 unk1 <optimize=false>;
+    local int size = header.size - (startof(unk1) - startof(header)) + sizeof(StructureHeader);
+    uint8 unk2[size - 1] <optimize=false>;
+} UnknownStructure <read=read_UnknownStructure>;
+
+string read_UnknownStructure(UnknownStructure& u)
+{
+    string result;
+    SPrintf(result, "unknown data, size: %Xh (%u)", u.size, u.size);
+    return result;
+}
+
+struct GenericStruct {
+    StructureHeader header;
+    UnknownStructure data(header);
+};
+
+struct GenericStructVector {
+    uint32 count;
+    GenericStruct data[count] <optimize=false>;
+};
+
+struct DataStoreReqGetInfo {
+    String url;
+    DataStoreKeyValueList requestHeaders;
+    uint32 size;
+    Buffer rootCaCert;
+    uint64 dataId;
+};

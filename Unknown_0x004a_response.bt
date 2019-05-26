@@ -1,0 +1,10 @@
+#include "CommonTypes.bt"
+
+struct Unknown_0x004a_request {
+    uint32 id; //observed values: 0x82, 0x81, 0x80
+};
+
+struct Unknown_0x004a_response {
+    uint32 size;
+    qBuffer data[size] <optimize=false>;
+} response;

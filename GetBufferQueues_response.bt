@@ -1,0 +1,22 @@
+#include "CommonTypes.bt"
+
+typedef struct {
+    StructureHeader header <optimize=false>;
+    uint32 u1;
+    uint8 u2;
+    uint32 u3;
+    uint32 u4;
+    uint64 dataId;
+    uint64 u5;
+    String name;
+    UnknownStructure _unk(header);
+} HeaderedGetBufferQueuesData <read=read_HeaderedGetBufferQueuesData>;
+
+string read_HeaderedGetBufferQueuesData(HeaderedGetBufferQueuesData& s) {
+    return s.name.data;
+}
+
+struct GetBufferQueuesResponse {
+    uint32 count;
+    HeaderedGetBufferQueuesData data0[count] <optimize=false>;
+} response;

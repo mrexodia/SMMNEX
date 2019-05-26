@@ -1,0 +1,22 @@
+#include "CommonTypes.bt"
+
+struct HeaderedDataStoreReqGetInfo {
+    StructureHeader header;
+    DataStoreReqGetInfo data;
+};
+
+struct HeaderedDataId {
+    StructureHeader header;
+    uint64 data;
+};
+
+struct GetObjectInfosResponseData {
+    HeaderedDataId dataId;
+    HeaderedDataStoreReqGetInfo info;
+    Assert(dataId.data == info.data.dataId);
+};
+
+struct GetObjectInfosResponse {
+    uint32 count;
+    GetObjectInfosResponseData data[count] <optimize=false>;
+} response;

@@ -1,0 +1,6 @@
+#include "CommonTypes.bt"
+
+struct Unknown_0x0041_request {
+    GenericStruct unk1;
+    qVector_qBuffer unk2;
+} request;

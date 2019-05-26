@@ -1,0 +1,9 @@
+#include "CommonTypes.bt"
+
+struct GetBufferQueuesRequest {
+    StructureHeader header;
+    uint32 magic;
+    uint32 count;
+    uint64 dataIds[count];
+    UnknownStructure unk(header);
+} request;
