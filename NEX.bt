@@ -87,6 +87,66 @@ struct DataStoreMetaInfo {
     List_DataStoreRatingInfoWithSlot ratings;
 };
 
+struct Method50Request {
+    StructureHeader header;
+    uint32 magic;
+    uint32 count;
+    uint64 dataIds[count];
+    uint8 unk;
+};
+
+struct DataStoreInfoStuff {
+    StructureHeader header;
+    uint32 unk1;
+    uint32 unk2;
+    DataStoreMetaInfo metaInfo;
+};
+
+struct List_DataStoreInfoStuff {
+    uint32 count;
+    DataStoreInfoStuff data[count] <optimize=false>;
+};
+
+struct List_Result {
+    uint32 count;
+    uint32 data[count] <optimize=false>;
+};
+
+struct Method50Response {
+    List_DataStoreInfoStuff infos;
+    List_Result results;
+};
+
+struct Method61Request {
+    uint32 unknown;
+};
+
+struct Method61Response {
+    List_Result unknown;
+};
+
+struct UnknownStruct7 {
+    StructureHeader header;
+    UnknownStructure data(header); //TODO
+};  
+
+struct Method65Request {
+    UnknownStruct7 unknown1;
+    List_String unknown2;
+};
+
+struct Method65Response {
+    List_DataStoreInfoStuff infos;
+};
+
+struct Method74Request {
+    uint32 unknown;
+};
+
+struct Method74Response {
+    List_String unknown;
+};
+
 typedef struct {
     uint32 payload_size;
     Protocol protocol;
@@ -96,12 +156,40 @@ typedef struct {
     local int methodid = method_id.id;
     if(protoid == 0x73)
     {
-        if(methodid == 0x08) //GetMeta
+        if(methodid == 8) //GetMeta
         {
             if(protocol.request)
                 DataStoreGetMetaParam req;
             else
                 DataStoreMetaInfo res;
+        }
+        else if(methodid == 50)
+        {
+            if(protocol.request)
+                Method50Request req;
+            else
+                Method50Response res;
+        }
+        else if(methodid == 61)
+        {
+            if(protocol.request)
+                Method61Request req;
+            else
+                Method61Response res;
+        }
+        else if(methodid == 65)
+        {
+            if(protocol.request)
+                Method65Request req;
+            else
+                Method65Response res;
+        }
+        else if(methodid == 74)
+        {
+            if(protocol.request)
+                Method74Request req;
+            else
+                Method74Response res;
         }
         else
         {
@@ -165,12 +253,15 @@ string methodName(uint8 protocol, uint32 method)
         switch(method)
         {
         case 8: return "GetMeta";
-        case 0x32: return "GetBufferQueues";
+        case 50: return "Method50";
+        case 61: return "Method61";
+        case 65: return "Method65";
+        case 74: return "Method74";
         }
         break;
     }
     local string result;
-    SPrintf(result, "Unknown_0x%04x", method);
+    SPrintf(result, "Unknown_0x%04x(%u)", method, method);
     return result;
 }
 

@@ -28,8 +28,9 @@ typedef struct {
     char data[len] <optimize=false>;
 } String <read=read_String>;
 
-string read_String(String& s) {
-    return s.data;
+wstring read_String(String& s) {
+    return StringToWString(s.data, CHARSET_UTF8);
+    //return s.data;
 }
 
 struct qBuffer {
