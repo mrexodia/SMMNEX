@@ -89,6 +89,11 @@ struct DataStoreMetaInfo {
     List_DataStoreRatingInfoWithSlot ratings;
 };
 
+struct List_DataStoreMetaInfo {
+    uint32 count;
+    DataStoreMetaInfo data[count] <optimize=false>;
+};
+
 struct Method50Request {
     StructureHeader header;
     uint32 magic;
@@ -173,6 +178,63 @@ struct Method74Response {
     List_String unknown;
 };
 
+struct DataStoreKeyValue {
+    StructureHeader header;
+    String key;
+    String value;
+};
+
+struct DataStoreKeyValueList {
+    uint32 count;
+    DataStoreKeyValue data[count] <optimize=false>;
+};
+
+struct DataStoreReqGetInfo {
+    StructureHeader header;
+    String url;
+    DataStoreKeyValueList requestHeaders;
+    uint32 size;
+    Buffer rootCaCert;
+    uint64 dataId;
+};
+
+struct DataStorePrepareGetParam {
+    StructureHeader header;
+    uint64 dataId;
+    uint32 lockId;
+    DataStorePersistenceTarget persistenceTarget;
+    uint64 accessPassword;
+    List_String extraData;
+};
+
+struct UnknownStruct2 {
+    StructureHeader header;
+};
+
+struct List_UnknownStruct2 {
+    uint32 count;
+    UnknownStruct2 data[count] <optimize=false>;
+};
+
+struct Method78Request {
+    List_UnknownStruct2 unknown;
+    DataStoreGetMetaParam getMetaParam;
+};
+
+struct UnknownStruct3 {
+};
+
+struct List_UnknownStruct3 {
+    uint32 count;
+    UnknownStruct3 data[count] <optimize=false>;
+};
+
+struct Method78Response {
+    List_DataStoreMetaInfo metaInfos;
+    List_UnknownStruct3 unknown;
+    List_Result results;
+};
+
 typedef struct {
     uint32 payload_size;
     Protocol protocol;
@@ -188,6 +250,13 @@ typedef struct {
                 DataStoreGetMetaParam req;
             else
                 DataStoreMetaInfo res;
+        }
+        else if(methodid == 25) // PrepareGetObject
+        {
+            if(protocol.request)
+                DataStorePrepareGetParam req;
+            else
+                DataStoreReqGetInfo res;
         }
         else if(methodid == 50)
         {
@@ -216,6 +285,13 @@ typedef struct {
                 Method74Request req;
             else
                 Method74Response res;
+        }
+        else if(methodid == 78)
+        {
+            if(protocol.request)
+                Method78Request req;
+            else
+                Method78Response res;
         }
         else
         {
@@ -279,10 +355,12 @@ string methodName(uint8 protocol, uint32 method)
         switch(method)
         {
         case 8: return "GetMeta";
+        case 25: return "PrepareGetObject";
         case 50: return "Method50";
         case 61: return "Method61";
         case 65: return "Method65";
         case 74: return "Method74";
+        case 78: return "Method78";
         }
         break;
     }
@@ -305,4 +383,4 @@ string read_NEXRpc(NEXRpc& rpc)
     return result;
 }
 
-NEXRpc x[54] <optimize=false>;
+NEXRpc x[69] <optimize=false>;

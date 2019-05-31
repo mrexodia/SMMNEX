@@ -60,16 +60,6 @@ struct qVector_qBuffer {
     qBuffer data[len] <optimize=false>;
 };
 
-struct DataStoreKeyValue {
-    String key;
-    String value;
-};
-
-struct DataStoreKeyValueList {
-    uint32 count;
-    DataStoreKeyValue data[count] <optimize=false>;
-};
-
 typedef struct {
     uint8 version;
     uint32 size;
@@ -80,8 +70,6 @@ string read_StructureHeader(StructureHeader& s) {
     SPrintf(r, "version: %d, size: %Xh (%u)", s.version, s.size, s.size);
     return r;
 }
-
-//#define UnknownStructure uint8 _unk1 <optimize=false>; uint8 _unk2[4 + header.size - startof(_unk1) + sizeof(StructureHeader) - 1] <optimize=false>
 
 typedef struct(StructureHeader& header)
 {
@@ -105,14 +93,6 @@ struct GenericStruct {
 struct GenericStructVector {
     uint32 count;
     GenericStruct data[count] <optimize=false>;
-};
-
-struct DataStoreReqGetInfo {
-    String url;
-    DataStoreKeyValueList requestHeaders;
-    uint32 size;
-    Buffer rootCaCert;
-    uint64 dataId;
 };
 
 struct List_PID {
