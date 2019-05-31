@@ -3,6 +3,27 @@ typedef unsigned short uint16;
 typedef unsigned int uint32;
 
 typedef struct {
+    uint32 pid;
+} PID <read=read_PID>;
+
+string read_PID(PID& pid) {
+    string result;
+    SPrintf(result, "%08xh (%u)", pid.pid, pid.pid);
+    return result;
+}
+
+typedef struct {
+    uint64 value;
+} DateTime;// <read=read_DateTime>;
+
+string read_DateTime(DateTime& dt)
+{
+    string result;
+    SPrintf(result, "%016llxh (%llu)", dt.value, dt.value);
+    return result;
+}
+
+typedef struct {
     uint16 len;
     char data[len] <optimize=false>;
 } String <read=read_String>;
@@ -84,4 +105,14 @@ struct DataStoreReqGetInfo {
     uint32 size;
     Buffer rootCaCert;
     uint64 dataId;
+};
+
+struct List_PID {
+    uint32 count;
+    PID data[count] <optimize=false>;
+};
+
+struct List_String {
+    uint32 count;
+    String data[count] <optimize=false>;
 };

@@ -26,12 +26,100 @@ string read_Protocol(Protocol& p)
     return result;
 }
 
+struct DataStorePersistenceTarget {
+    StructureHeader header;
+    PID ownerId;
+    uint16 persistenceSlotId;
+};
+
+struct DataStoreGetMetaParam {
+    StructureHeader header;
+    uint64 dataId;
+    DataStorePersistenceTarget persistenceTarget;
+    uint8 resultOption;
+    uint64 accessPassword;
+};
+
+struct DataStorePermission {
+    StructureHeader header;
+    uint8 permission;
+    List_PID pids;
+};
+
+struct DataStoreRatingInfo {
+    StructureHeader header;
+    uint64 totalValue;
+    uint32 count;
+    uint64 initialValue;
+};
+
+struct DataStoreRatingInfoWithSlot {
+    StructureHeader header;
+    uint8 slot;
+    DataStoreRatingInfo rating;
+};
+
+struct List_DataStoreRatingInfoWithSlot {
+    uint32 count;
+    DataStoreRatingInfoWithSlot data[count] <optimize=false>;
+};
+
+struct DataStoreMetaInfo {
+    StructureHeader header;
+    uint64 dataId;
+    PID ownerId;
+    uint32 size;
+    String name;
+    uint16 dataType;
+    qBuffer metaBinary;
+    DataStorePermission permission;
+    DataStorePermission delPermission;
+    DateTime createdTime;
+    DateTime updatedTime;
+    uint16 period;
+    uint8 status;
+    uint32 referredCnt;
+    uint32 referDataId;
+    uint32 flag;
+    DateTime referredTime;
+    DateTime expireTime;
+    List_String tags;
+    List_DataStoreRatingInfoWithSlot ratings;
+};
+
 typedef struct {
     uint32 payload_size;
     Protocol protocol;
     uint32 call_id;
     MethodId method_id;
-    uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
+    local int protoid = protocol.id;
+    local int methodid = method_id.id;
+    if(protoid == 0x73)
+    {
+        if(methodid == 0x08) //GetMeta
+        {
+            if(protocol.request)
+                DataStoreGetMetaParam req;
+            else
+                DataStoreMetaInfo res;
+        }
+        else
+        {
+            union
+            {
+                uint8 lol;
+                uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
+            } u;
+        }
+    }
+    else
+    {
+        union
+        {
+            uint8 lol;
+            uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
+        } u;
+    }
 } NEXRpc <read=read_NEXRpc>;
 
 string protocolName(uint8 protocol)
