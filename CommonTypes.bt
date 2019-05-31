@@ -3,6 +3,14 @@ typedef unsigned short uint16;
 typedef unsigned int uint32;
 
 typedef struct {
+    uint8 value;
+} bool <read=read_bool>;
+
+string read_bool(bool& b) {
+    return b.value ? "true" : "false";
+}
+
+typedef struct {
     uint32 pid;
 } PID <read=read_PID>;
 
@@ -30,7 +38,6 @@ typedef struct {
 
 wstring read_String(String& s) {
     return StringToWString(s.data, CHARSET_UTF8);
-    //return s.data;
 }
 
 struct qBuffer {

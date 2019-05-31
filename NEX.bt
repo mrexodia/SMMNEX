@@ -1,5 +1,7 @@
 #include "CommonTypes.bt"
 
+// See: https://github.com/Kinnay/NintendoClients/wiki/Data-Store-Protocol-(SMM)#unknownstruct-structure
+
 typedef struct {
     uint8 id : 7;
     uint8 request : 1;
@@ -112,6 +114,8 @@ struct List_Result {
     uint32 data[count] <optimize=false>;
 };
 
+typedef List_Result List_Uint32;
+
 struct Method50Response {
     List_DataStoreInfoStuff infos;
     List_Result results;
@@ -122,12 +126,34 @@ struct Method61Request {
 };
 
 struct Method61Response {
-    List_Result unknown;
+    List_Uint32 unknown;
+};
+
+struct UnknownStruct {
+    StructureHeader header;
+    uint32 unk1;
+    uint32 unk2;
 };
 
 struct UnknownStruct7 {
     StructureHeader header;
-    UnknownStructure data(header); //TODO
+    uint8 unk1;
+    List_Uint32 unk2;
+    uint8 unk3;
+    List_Uint32 unk4;
+    uint16 unk5;
+    DateTime unk6;
+    DateTime unk7;
+    DateTime unk8;
+    DateTime unk9;
+    uint32 unk10;
+    List_String unk11;
+    uint8 unk12;
+    uint8 unk13;
+    UnknownStruct unk14;
+    uint8 unk15;
+    uint32 unk16;
+    bool unk17;
 };  
 
 struct Method65Request {
