@@ -1,0 +1,7 @@
+#include "CommonTypes.bt"
+
+struct Ticket {
+    uint8 session_key[32];
+    uint32 target_pid;
+    Buffer internal;
+} t;

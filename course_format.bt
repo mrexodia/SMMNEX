@@ -1,0 +1,8 @@
+BigEndian();
+struct CourseDecompressed {
+    uint32 checksum1;
+    uint32 size1;
+    uint32 checksum2;
+    uint16 size2;
+    unsigned char data[size1];
+} course;

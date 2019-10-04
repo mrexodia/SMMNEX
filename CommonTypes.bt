@@ -21,13 +21,36 @@ string read_PID(PID& pid) {
 }
 
 typedef struct {
+    uint64 second : 6;
+    uint64 minute : 6;
+    uint64 hour : 5;
+    uint64 day : 5;
+    uint64 month : 4;
+    uint64 year : 38;
+} DateTimeBits <read=read_DateTimeBits>;
+
+string read_DateTimeBits(DateTimeBits& dt) {
+    local string result;
+    SPrintf(result, "%04d-%02d-%02d %02d:%02d:%02d",
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second
+    );
+    return result;
+};
+
+typedef union {
     uint64 value;
-} DateTime;// <read=read_DateTime>;
+    DateTimeBits bits;
+} DateTime <read=read_DateTime>;
 
 string read_DateTime(DateTime& dt)
 {
-    string result;
-    SPrintf(result, "%016llxh (%llu)", dt.value, dt.value);
+    local string result;
+    SPrintf(result, "%s (%LXh)", read_DateTimeBits(dt.bits), dt.value);
     return result;
 }
 
@@ -40,10 +63,28 @@ wstring read_String(String& s) {
     return StringToWString(s.data, CHARSET_UTF8);
 }
 
-struct qBuffer {
+typedef struct {
     uint16 len;
     unsigned char data[len] <optimize=false>;
+} qBuffer <read=read_qBuffer>;
+
+string python_bytes(qBuffer& b) {
+    local string result = "b\"";
+    local string temp;
+    local int i;
+    for(i = 0; i < b.len; i++) {
+        SPrintf(temp, "\\x%02X", b.data[i]);
+        result += temp;
+    }
+    result += "\"";
+    return result;
 };
+
+string read_qBuffer(qBuffer& b) {
+    local string result;
+    SPrintf(result, "%xh (%u) bytes: %s", b.len, b.len, python_bytes(b));
+    return result;
+}
 
 struct Buffer {
     uint32 len;
@@ -100,7 +141,21 @@ struct List_PID {
     PID data[count] <optimize=false>;
 };
 
-struct List_String {
+typedef struct {
     uint32 count;
     String data[count] <optimize=false>;
-};
+} List_String <read=read_List_String>;
+
+wstring read_List_String(List_String& l) {
+    local wstring result = L"[";
+    local int i;
+    for(i = 0; i < l.count; i++) {
+        if(i > 0)
+            result += L", ";
+        result += L"\"";
+        result += read_String(l.data[i]);
+        result += L"\"";
+    }
+    result += L"]";
+    return result;
+}

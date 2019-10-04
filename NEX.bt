@@ -1,7 +1,33 @@
 #include "CommonTypes.bt"
 
-// See: https://github.com/Kinnay/NintendoClients/wiki/Data-Store-Protocol-(SMM)#unknownstruct-structure
+typedef struct {
+    uint64 value;
+} DataId <read=read_DataId>;
 
+string read_DataId(DataId& id) {
+    local string result;
+    SPrintf(result, "%LXh (%Lu)", id.value, id.value);
+    return result;
+}
+
+struct BPFC {
+    uint32 magic; //BPFC
+    uint32 unk1;
+    uint32 unk2;
+    uint32 unk3;
+    uint32 unk4;
+    uint32 unk5;
+    uint8 miidata[96];
+    uint32 unk6;
+    uint32 unk7;
+    uint32 unk8;
+    uint32 unk9;
+    uint32 unk10;
+};
+// BPFC magic, 
+
+// See: https://github.com/Kinnay/NintendoClients/wiki/Data-Store-Protocol-(SMM)#unknownstruct-structure
+local int counter = 0;
 typedef struct {
     uint8 id : 7;
     uint8 request : 1;
@@ -36,7 +62,7 @@ struct DataStorePersistenceTarget {
 
 struct DataStoreGetMetaParam {
     StructureHeader header;
-    uint64 dataId;
+    DataId dataId;
     DataStorePersistenceTarget persistenceTarget;
     uint8 resultOption;
     uint64 accessPassword;
@@ -55,11 +81,22 @@ struct DataStoreRatingInfo {
     uint64 initialValue;
 };
 
-struct DataStoreRatingInfoWithSlot {
+typedef struct {
     StructureHeader header;
     uint8 slot;
     DataStoreRatingInfo rating;
-};
+} DataStoreRatingInfoWithSlot <read=read_DataStoreRatingInfoWithSlot>;
+
+string read_DataStoreRatingInfoWithSlot(DataStoreRatingInfoWithSlot& r) {
+    local string result;
+    SPrintf(result, "rating_slot(%u, %u, %u, %u)",
+        r.slot,
+        r.rating.totalValue,
+        r.rating.count,
+        r.rating.initialValue
+    );
+    return result;
+}
 
 struct List_DataStoreRatingInfoWithSlot {
     uint32 count;
@@ -68,7 +105,7 @@ struct List_DataStoreRatingInfoWithSlot {
 
 struct DataStoreMetaInfo {
     StructureHeader header;
-    uint64 dataId;
+    DataId dataId;
     PID ownerId;
     uint32 size;
     String name;
@@ -94,30 +131,56 @@ struct List_DataStoreMetaInfo {
     DataStoreMetaInfo data[count] <optimize=false>;
 };
 
+struct List_DataId {
+    uint32 count;
+    DataId data[count] <optimize=false>;
+};
+
 struct Method50Request {
     StructureHeader header;
     uint32 magic;
-    uint32 count;
-    uint64 dataIds[count];
+    List_DataId dataIds;
     uint8 unk;
 };
 
-struct DataStoreInfoStuff {
+typedef struct {
     StructureHeader header;
     uint32 unk1;
-    uint32 unk2;
+    uint32 stars_received;
     DataStoreMetaInfo metaInfo;
-};
+} DataStoreInfoStuff <read=read_DataStoreInfoStuff>;
+
+string read_DataStoreInfoStuff(DataStoreInfoStuff& i) {
+    local string result;
+    SPrintf(result, "%Lu", i.metaInfo.dataId.value);
+    return result;
+}
 
 struct List_DataStoreInfoStuff {
     uint32 count;
     DataStoreInfoStuff data[count] <optimize=false>;
 };
 
-struct List_Result {
+typedef struct {
     uint32 count;
     uint32 data[count] <optimize=false>;
-};
+} List_Result <read=read_List_Result>;
+
+string read_List_Result(List_Result& l) {
+    local string result = "[";
+    local string temp;
+    local int i = 0;
+    while(i < l.count)
+    {
+        if(i > 0)
+            result += ", ";
+        SPrintf(temp, "0x%X", l.data[i]);
+        result += temp;
+        i++;
+    }
+    result += "]";
+    return result;
+}
 
 typedef List_Result List_Uint32;
 
@@ -170,9 +233,15 @@ struct Method65Response {
     List_DataStoreInfoStuff infos;
 };
 
-struct Method74Request {
+typedef struct {
     uint32 unknown;
-};
+} Method74Request <read=read_Method74Request>;
+
+string read_Method74Request(Method74Request& r) {
+    local string result;
+    SPrintf(result, "%Xh (%u)", r.unknown, r.unknown);
+    return result;
+}
 
 struct Method74Response {
     List_String unknown;
@@ -192,15 +261,16 @@ struct DataStoreKeyValueList {
 struct DataStoreReqGetInfo {
     StructureHeader header;
     String url;
+    Printf("%s\n", url.data);
     DataStoreKeyValueList requestHeaders;
     uint32 size;
     Buffer rootCaCert;
-    uint64 dataId;
+    DataId dataId;
 };
 
 struct DataStorePrepareGetParam {
     StructureHeader header;
-    uint64 dataId;
+    DataId dataId;
     uint32 lockId;
     DataStorePersistenceTarget persistenceTarget;
     uint64 accessPassword;
@@ -209,6 +279,8 @@ struct DataStorePrepareGetParam {
 
 struct UnknownStruct2 {
     StructureHeader header;
+    DataId dataId;
+    uint8 unk2;
 };
 
 struct List_UnknownStruct2 {
@@ -222,6 +294,14 @@ struct Method78Request {
 };
 
 struct UnknownStruct3 {
+    StructureHeader header;
+    uint64 unk1;
+    uint8 unk2;
+    uint32 unk3;
+    uint32 unk4;
+    uint32 unk5;
+    DateTime unk6;
+    DateTime unk7;
 };
 
 struct List_UnknownStruct3 {
@@ -232,6 +312,38 @@ struct List_UnknownStruct3 {
 struct Method78Response {
     List_DataStoreMetaInfo metaInfos;
     List_UnknownStruct3 unknown;
+    List_Result results;
+};
+
+struct UnknownStruct4 {
+    StructureHeader header;
+    DataId dataId;
+    uint32 unk2;
+};
+
+struct Method54Request {
+    UnknownStruct4 unknown;
+};
+
+struct Method54Response {
+    qVector_qBuffer unknown;
+};
+
+struct Method72Request {
+    UnknownStruct2 param;
+};
+
+struct Method72Response {
+    UnknownStruct3 unknown;
+};
+
+struct GetMetasMultipleParamRequest {
+    uint32 count;
+    DataStoreGetMetaParam data[count] <optimize=false>;
+};
+
+struct GetMetasMultipleParamResponse {
+    List_DataStoreMetaInfo infos;
     List_Result results;
 };
 
@@ -258,6 +370,13 @@ typedef struct {
             else
                 DataStoreReqGetInfo res;
         }
+        else if(methodid == 36) // GetMetasMultipleParam
+        {
+            if(protocol.request)
+                GetMetasMultipleParamRequest req;
+            else
+                GetMetasMultipleParamResponse res;
+        }
         else if(methodid == 50)
         {
             if(protocol.request)
@@ -272,7 +391,7 @@ typedef struct {
             else
                 Method61Response res;
         }
-        else if(methodid == 65)
+        else if(methodid == 65 || methodid == 66)
         {
             if(protocol.request)
                 Method65Request req;
@@ -293,22 +412,28 @@ typedef struct {
             else
                 Method78Response res;
         }
+        else if(methodid == 54)
+        {
+            if(protocol.request)
+                Method54Request req;
+            else
+                Method54Response res;
+        }
+        else if(methodid == 72)
+        {
+            if(protocol.request)
+                Method72Request req;
+            else
+                Method72Response res;
+        }
         else
         {
-            union
-            {
-                uint8 lol;
-                uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
-            } u;
+            uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
         }
     }
     else
     {
-        union
-        {
-            uint8 lol;
-            uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
-        } u;
+        uint8 payload[payload_size - (protocol.request ? 9 : 10)] <optimize=false>;
     }
 } NEXRpc <read=read_NEXRpc>;
 
@@ -356,9 +481,11 @@ string methodName(uint8 protocol, uint32 method)
         {
         case 8: return "GetMeta";
         case 25: return "PrepareGetObject";
+        case 36: return "GetMetasMultipleParam";
         case 50: return "Method50";
         case 61: return "Method61";
         case 65: return "Method65";
+        case 72: return "Method72";
         case 74: return "Method74";
         case 78: return "Method78";
         }
@@ -382,5 +509,3 @@ string read_NEXRpc(NEXRpc& rpc)
     );
     return result;
 }
-
-NEXRpc x[69] <optimize=false>;
