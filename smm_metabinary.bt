@@ -1,0 +1,32 @@
+typedef unsigned char uint8;
+typedef unsigned short uint16;
+typedef unsigned int uint32;
+
+/*
+The level format is 4 chunks that start with ASH0:
+- chunk1: thumbnail0.tnl (compressed)
+- chunk2: course_data.cdt (compressed)
+- chunk3: course_data_sub.cdt (compressed)
+- chunk4: thumbnail1.tnl (compressed)
+See https://github.com/PretendoNetwork/ASH0 for decompression code.
+*/
+
+BigEndian();
+struct MetaBinarySmm {
+    uint32 unk1; // observed values: 1, 2, 3
+    uint32 unk2; // observed values: 0, 1, 2, 3, 4, 5
+
+    uint32 chunk2_size; // course_data.cdt (compressed)
+    uint32 chunk3_size; // course_data_sub.cdt (compressed)
+    uint32 chunk1_size; // thumbnail0.tnl (compressed)
+    uint32 chunk4_size; // thumbnail1.tnl (compressed)
+
+    uint32 unk3; // observed values: 1, 2, 3
+
+    uint32 chunk2_crc32; // course_data.cdt (compressed)
+    uint32 chunk3_crc32; // course_data_sub.cdt (compressed)
+    uint32 chunk1_crc32; // thumbnail0.tnl (compressed)
+    uint32 chunk4_crc32; // thumbnail1.tnl (compressed)
+};
+
+MetaBinarySmm metaBinary;
